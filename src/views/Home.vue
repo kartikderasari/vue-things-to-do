@@ -1,18 +1,44 @@
 <template>
-  <div class="home">
-    <img alt="Vue logo" src="../assets/logo.png">
-    <HelloWorld msg="Welcome to Your Vue.js App"/>
+  <div>
+    <Navbar v-if="loggedIn" />
+    <v-main>
+      <signIn v-if="!loggedIn" />
+      <tasksContainer v-if="loggedIn" />
+    </v-main>
   </div>
 </template>
 
 <script>
-// @ is an alias to /src
-import HelloWorld from '@/components/HelloWorld.vue'
+import Navbar from "../components/Navbar";
+import signIn from "../components/signIn";
+import tasksContainer from "../components/tasksContainer";
+import { auth } from "../config/firebase";
 
 export default {
-  name: 'Home',
+  name: "Home",
   components: {
-    HelloWorld
-  }
-}
+    Navbar,
+    signIn,
+    tasksContainer,
+  },
+  data: () => ({
+    loggedIn: true,
+  }),
+  watch: {
+    group() {
+      this.drawer = false;
+    },
+  },
+  methods: {
+    checkState: () => {
+      auth.onAuthStateChanged(function(user) {
+        if (user) {
+          //this.loggedIn = true;
+        } else {
+          //this.loggedIn = false;
+        }
+      });
+    },
+  },
+};
 </script>
