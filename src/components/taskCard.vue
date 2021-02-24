@@ -1,9 +1,8 @@
 <template>
   <v-card outlined>
-    <v-card-title
-      >Title
+    <v-card-title>
+      {{ this.taskData.title }}
       <v-spacer></v-spacer>
-
       <v-dialog v-model="editTaskDialog" max-width="600px" scrollable>
         <template v-slot:activator="{ on, attrs }">
           <v-btn v-bind="attrs" v-on="on" icon>
@@ -62,19 +61,39 @@
 
     <v-card-subtitle>
       <p>
-        Lorem ipsum dolor sit amet, consectetur adipisicing elit. Recusandae ve
+        {{ this.taskData.notes }}
       </p>
-      <small>Last updated: 1/6/2021, 7:00:11 PM</small>
+      <small
+        >Last updated:
+        {{ new Date(this.taskData.timeStamp).toLocaleString() }}
+      </small>
     </v-card-subtitle>
     <v-divider></v-divider>
     <v-card-actions class="justify-center">
-      <v-btn outlined small>
+      <v-btn
+        :outlined="toDoOutline"
+        small
+        :disabled="toDoFlag"
+        @click="updateStatus('To Do')"
+      >
         To Do
       </v-btn>
-      <v-btn outlined small color="primary">
+      <v-btn
+        :outlined="onGoingOutline"
+        small
+        color="primary"
+        :disabled="onGoingFlag"
+        @click="updateStatus('Ongoing')"
+      >
         Ongoing
       </v-btn>
-      <v-btn outlined small color="success">
+      <v-btn
+        :outlined="doneOutline"
+        small
+        color="success"
+        :disabled="doneFlag"
+        @click="updateStatus('Done')"
+      >
         Done
       </v-btn>
     </v-card-actions>
@@ -82,32 +101,70 @@
 </template>
 
 <script>
-import { firestore, auth } from "../config/firebase";
+import FDK from "../config/firebase";
 
 export default {
   data: () => {
     return {
       editTaskDialog: false,
+      toDoFlag: false,
+      onGoingFlag: false,
+      doneFlag: false,
+      toDoOutline: true,
+      doneOutline: true,
+      onGoingOutline: true,
     };
   },
+  props: ["taskData"],
   methods: {
-    updateStatus: (task, id, taskNotes, status) => {
-      let user = auth().currentUser;
-      let updatedTask = {
-        name: task,
+    setButtonDisabled: function() {
+      if (this.taskData.status == "To Do") {
+        this.toDoFlag = true;
+        this.toDoOutline = false;
+      } else if (this.taskData.status == "Ongoing") {
+        this.onGoingFlag = true;
+        this.onGoingOutline = false;
+      } else if (this.taskData.status == "Done") {
+        this.doneFlag = true;
+        this.doneOutline = false;
+      }
+    },
+    updateStatus: function(status) {
+      let user = FDK.auth().currentUser;
+      console.log(user.uid);
+      let temp = {
+        title: this.taskData.title,
+        notes: this.taskData.notes,
         status: status,
-        notes: taskNotes,
         timeStamp: Date.now(),
       };
-      firestore()
+      FDK.firestore()
         .collection("edata")
         .doc(user.uid)
         .collection("todoData")
-        .doc(id)
-        .update(updatedTask)
-        .then(() => console.log(user))
-        .catch((e) => console.log(e));
+        .doc(this.taskData.id)
+        .set(temp)
+        .then(() => {
+          this.$emit("readDataCall");
+        });
+      this.resetButtons();
+      this.setButtonDisabled();
     },
+    resetButtons: function() {
+      this.toDoFlag = false;
+      this.onGoingFlag = false;
+      this.doneFlag = false;
+      this.toDoOutline = true;
+      this.doneOutline = true;
+      this.onGoingOutline = true;
+    },
+  },
+  mounted: function() {
+    this.setButtonDisabled();
+  },
+  updated: function() {
+    this.resetButtons();
+    this.setButtonDisabled();
   },
 };
 </script>

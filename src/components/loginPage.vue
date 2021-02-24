@@ -24,7 +24,6 @@
 
 <script>
 import FDK from "../config/firebase";
-//console.log(auth);
 var provider = new FDK.auth.GoogleAuthProvider();
 
 export default {
@@ -36,7 +35,7 @@ export default {
         .getRedirectResult()
         .then((result) => {
           if (result.credential) {
-            console.log("Works");
+            //window.location.href = "./";
           }
           var user = result.user;
           console.log(user);
@@ -45,6 +44,19 @@ export default {
           console.log(error);
         });
     },
+    checkState: () => {
+      FDK.auth().onAuthStateChanged(function(user) {
+        if (user) {
+          window.location.href = "./";
+        } else {
+          // User is signed out.
+          // ...
+        }
+      });
+    },
+  },
+  mounted: function() {
+    this.checkState();
   },
 };
 </script>
