@@ -14,27 +14,27 @@
       <v-list>
         <v-list-item class="justify-center">
           <v-list-item-avatar max-width size="60">
-            <v-img src="https://cdn.vuetifyjs.com/images/john.png"></v-img>
+            <v-img :src="userProfilePhoto"></v-img>
           </v-list-item-avatar>
         </v-list-item>
 
         <v-list-item>
           <v-list-item-content class="text-center">
             <v-list-item-title class="title">
-              John Leider
+              {{ userName }}
             </v-list-item-title>
-            <v-list-item-subtitle>john@vuetifyjs.com</v-list-item-subtitle>
+            <v-list-item-subtitle> {{ userEmail }} </v-list-item-subtitle>
           </v-list-item-content>
         </v-list-item>
 
         <v-list-item class="justify-center">
-          <v-btn outlined small color="primary">
+          <v-btn outlined small color="primary" @click="logoutUser()">
             Log out
           </v-btn>
         </v-list-item>
       </v-list>
 
-      <v-divider></v-divider>
+      <!-- <v-divider></v-divider>
 
       <v-list nav dense rounded>
         <v-list-item-group v-model="selectedItem" color="primary">
@@ -48,19 +48,21 @@
             </v-list-item-content>
           </v-list-item>
         </v-list-item-group>
-      </v-list>
+      </v-list> -->
     </v-navigation-drawer>
   </v-card>
 </template>
 
 <script>
+import FDK from "../config/firebase";
+
 export default {
   data: () => {
     return {
       showMenu: false,
       drawer: false,
       group: null,
-      selectedItem: 0,
+      /* selectedItem: 0,
       items: [
         { text: "My Files", icon: "mdi-folder" },
         { text: "Shared with me", icon: "mdi-account-multiple" },
@@ -69,13 +71,39 @@ export default {
         { text: "Offline", icon: "mdi-check-circle" },
         { text: "Uploads", icon: "mdi-upload" },
         { text: "Backups", icon: "mdi-cloud-upload" },
-      ],
+      ], */
+      userName: "",
+      userProfilePhoto: "",
+      userEmail: "",
     };
   },
-  /* watch: {
-    group() {
-      this.drawer = false;
+  methods: {
+    checkState: function() {
+      let ref = this;
+      FDK.auth().onAuthStateChanged(function(user) {
+        if (user) {
+          ref.userName = user.displayName;
+          ref.userProfilePhoto = user.photoURL;
+          ref.userEmail = user.email;
+        } else {
+          window.location.href = "./";
+        }
+      });
     },
-  }, */
+    logoutUser: function() {
+      FDK.auth()
+        .signOut()
+        .then(() => {
+          window.location.href = "./";
+        })
+        .catch((error) => {
+          // An error happened.
+          console.log(error);
+        });
+    },
+  },
+  mounted: function() {
+    this.checkState();
+  },
 };
 </script>

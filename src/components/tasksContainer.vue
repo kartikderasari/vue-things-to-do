@@ -77,7 +77,11 @@
     </v-row>
     <v-row class="mt-5">
       <v-col cols="4" v-for="(task, index) in tasks" :key="index">
-        <taskCard :taskData="{ index, ...task }" @readDataCall="readTasks()" />
+        <taskCard
+          :taskData="{ index, ...task }"
+          @readDataCall="readTasks()"
+          :key="task.timeStamp"
+        />
       </v-col>
     </v-row>
   </v-container>
@@ -135,7 +139,6 @@ export default {
           });
         })
         .catch((err) => console.log(err));
-      console.log(this.tasks);
     },
     clearForm: function() {
       this.newTask = {
@@ -152,7 +155,7 @@ export default {
           ref.user = user;
           ref.readTasks();
         } else {
-          window.location.href = "./login";
+          window.location.href = "./";
         }
       });
     },

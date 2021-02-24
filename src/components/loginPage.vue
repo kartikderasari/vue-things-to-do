@@ -35,10 +35,8 @@ export default {
         .getRedirectResult()
         .then((result) => {
           if (result.credential) {
-            //window.location.href = "./";
+            //Yo, User logged in!
           }
-          var user = result.user;
-          console.log(user);
         })
         .catch((error) => {
           console.log(error);
@@ -47,7 +45,7 @@ export default {
     checkState: () => {
       FDK.auth().onAuthStateChanged(function(user) {
         if (user) {
-          window.location.href = "./";
+          window.location.href = "./dashboard";
         } else {
           // User is signed out.
           // ...

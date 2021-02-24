@@ -19,7 +19,10 @@
             <v-container>
               <v-row>
                 <v-col cols="12">
-                  <v-text-field label="Title"></v-text-field>
+                  <v-text-field
+                    label="Title"
+                    v-model="editTaskData.title"
+                  ></v-text-field>
                 </v-col>
                 <v-col cols="12">
                   <v-textarea
@@ -28,6 +31,7 @@
                     value=""
                     row-height="10"
                     auto-grow
+                    v-model="editTaskData.notes"
                   ></v-textarea>
                 </v-col>
                 <v-col cols="12">
@@ -35,6 +39,7 @@
                     :items="['To Do', 'Ongoing', 'Done']"
                     label="Status"
                     required
+                    v-model="editTaskData.status"
                   ></v-select>
                 </v-col>
               </v-row>
@@ -45,14 +50,23 @@
             <v-btn color="blue darken-1" text @click="editTaskDialog = false">
               Close
             </v-btn>
-            <v-btn color="blue darken-1" text @click="editTaskDialog = false">
+            <v-btn
+              color="blue darken-1"
+              text
+              @click="
+                {
+                  editTaskDialog = false;
+                  updateTask();
+                }
+              "
+            >
               Save
             </v-btn>
           </v-card-actions>
         </v-card>
       </v-dialog>
 
-      <v-btn icon>
+      <v-btn icon @click="deleteTask()">
         <v-icon>
           mdi-close
         </v-icon>
@@ -113,11 +127,19 @@ export default {
       toDoOutline: true,
       doneOutline: true,
       onGoingOutline: true,
+      editTaskData: {
+        title: "",
+        notes: "",
+        status: "",
+        timeStamp: "",
+        id: "",
+      },
     };
   },
   props: ["taskData"],
   methods: {
     setButtonDisabled: function() {
+      this.resetButtons();
       if (this.taskData.status == "To Do") {
         this.toDoFlag = true;
         this.toDoOutline = false;
@@ -131,7 +153,6 @@ export default {
     },
     updateStatus: function(status) {
       let user = FDK.auth().currentUser;
-      console.log(user.uid);
       let temp = {
         title: this.taskData.title,
         notes: this.taskData.notes,
@@ -150,6 +171,19 @@ export default {
       this.resetButtons();
       this.setButtonDisabled();
     },
+    updateTask: function() {
+      this.editTaskData.timeStamp = Date.now();
+      let user = FDK.auth().currentUser;
+      FDK.firestore()
+        .collection("edata")
+        .doc(user.uid)
+        .collection("todoData")
+        .doc(this.taskData.id)
+        .set(this.editTaskData)
+        .then(() => {
+          this.$emit("readDataCall");
+        });
+    },
     resetButtons: function() {
       this.toDoFlag = false;
       this.onGoingFlag = false;
@@ -158,13 +192,26 @@ export default {
       this.doneOutline = true;
       this.onGoingOutline = true;
     },
+    deleteTask: async function() {
+      let user = FDK.auth().currentUser;
+      await FDK.firestore()
+        .collection("edata")
+        .doc(user.uid)
+        .collection("todoData")
+        .doc(this.taskData.id)
+        .delete();
+      this.$emit("readDataCall");
+    },
+    setEditDialogData: function() {
+      this.editTaskData.title = this.taskData.title;
+      this.editTaskData.notes = this.taskData.notes;
+      this.editTaskData.status = this.taskData.status;
+    },
   },
   mounted: function() {
-    this.setButtonDisabled();
-  },
-  updated: function() {
     this.resetButtons();
     this.setButtonDisabled();
+    this.setEditDialogData();
   },
 };
 </script>
