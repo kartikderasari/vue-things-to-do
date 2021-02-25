@@ -91,7 +91,8 @@
             <v-card-title>
               <span class="headline">Edit a Task</span>
             </v-card-title>
-            <v-card-text>
+            <v-divider></v-divider>
+            <v-card-text class="mt-2">
               <v-container>
                 <v-row>
                   <v-col cols="12">
@@ -121,6 +122,8 @@
                 </v-row>
               </v-container>
             </v-card-text>
+
+            <v-divider></v-divider>
             <v-card-actions>
               <v-spacer></v-spacer>
               <v-btn color="blue darken-1" text @click="editTaskDialog = false">
