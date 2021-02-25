@@ -76,14 +76,14 @@
       </v-col>
     </v-row>
     <v-row v-if="loadingData && tasks.length >= 3" class="mt-5">
-      <v-col cols="4" v-for="x in 3" :key="x">
+      <v-col cols="12" lg="4" md="4" sm="6" v-for="x in 3" :key="x">
         <v-card outlined elevation="0">
           <v-skeleton-loader v-bind="attrs" type="article"></v-skeleton-loader
         ></v-card>
       </v-col>
     </v-row>
     <v-row v-else-if="loadingData && tasks.length < 3" class="mt-5">
-      <v-col cols="4" v-for="x in tasks.length" :key="x">
+      <v-col cols="12" lg="4" md="4" sm="6" v-for="x in tasks.length" :key="x">
         <v-card outlined elevation="0">
           <v-skeleton-loader v-bind="attrs" type="article"></v-skeleton-loader
         ></v-card>
@@ -93,7 +93,14 @@
       <v-col class="text-center" v-if="tasks.length == 0" cols="12">
         <p class="subtitle-1">No tasks found!</p>
       </v-col>
-      <v-col cols="4" v-for="(task, index) in tasks" :key="index">
+      <v-col
+        cols="12"
+        lg="4"
+        md="4"
+        sm="6"
+        v-for="(task, index) in tasks"
+        :key="index"
+      >
         <taskCard
           :taskData="{ index, ...task }"
           @readDataCall="readTasks()"
