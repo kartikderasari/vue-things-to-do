@@ -75,7 +75,24 @@
         </v-dialog>
       </v-col>
     </v-row>
-    <v-row class="mt-5">
+    <v-row v-if="loadingData && tasks.length >= 3" class="mt-5">
+      <v-col cols="4" v-for="x in 3" :key="x">
+        <v-card outlined elevation="0">
+          <v-skeleton-loader v-bind="attrs" type="article"></v-skeleton-loader
+        ></v-card>
+      </v-col>
+    </v-row>
+    <v-row v-else-if="loadingData && tasks.length < 3" class="mt-5">
+      <v-col cols="4" v-for="x in tasks.length" :key="x">
+        <v-card outlined elevation="0">
+          <v-skeleton-loader v-bind="attrs" type="article"></v-skeleton-loader
+        ></v-card>
+      </v-col>
+    </v-row>
+    <v-row v-else class="mt-5">
+      <v-col class="text-center" v-if="tasks.length == 0" cols="12">
+        <p class="subtitle-1">No tasks found!</p>
+      </v-col>
       <v-col cols="4" v-for="(task, index) in tasks" :key="index">
         <taskCard
           :taskData="{ index, ...task }"
@@ -104,6 +121,12 @@ export default {
       },
       tasks: [],
       user: "",
+      attrs: {
+        class: "mb-6 border",
+        boilerplate: true,
+        elevation: 0,
+      },
+      loadingData: false,
     };
   },
   methods: {
@@ -124,6 +147,7 @@ export default {
       this.readTasks();
     },
     readTasks: async function() {
+      this.loadingData = true;
       await FDK.firestore()
         .collection("edata")
         .doc(this.user.uid)
@@ -139,6 +163,7 @@ export default {
           });
         })
         .catch((err) => console.log(err));
+      this.loadingData = false;
     },
     clearForm: function() {
       this.newTask = {
