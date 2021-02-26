@@ -103,9 +103,23 @@
       >
         <taskCard
           :taskData="{ index, ...task }"
-          @readDataCall="readTasks()"
+          @readDataCall="readTasks"
+          @showNotification="showSnackbar"
           :key="task.timeStamp"
         />
+      </v-col>
+    </v-row>
+
+    <v-row>
+      <v-col>
+        <v-snackbar v-model="snackbar" timeout="2000">
+          {{ notificationText }}
+          <template v-slot:action="{ attrs }">
+            <v-btn color="pink" text v-bind="attrs" @click="snackbar = false">
+              Close
+            </v-btn>
+          </template>
+        </v-snackbar>
       </v-col>
     </v-row>
   </v-container>
@@ -134,6 +148,8 @@ export default {
         elevation: 0,
       },
       loadingData: false,
+      snackbar: false,
+      notificationText: "",
     };
   },
   methods: {
@@ -152,6 +168,7 @@ export default {
         .add(this.newTask);
       this.clearForm();
       this.readTasks();
+      this.showSnackbar("Task has been added");
     },
     readTasks: async function() {
       this.loadingData = true;
@@ -171,6 +188,10 @@ export default {
         })
         .catch((err) => console.log(err));
       this.loadingData = false;
+    },
+    showSnackbar: function(value) {
+      this.notificationText = value;
+      this.snackbar = true;
     },
     clearForm: function() {
       this.newTask = {

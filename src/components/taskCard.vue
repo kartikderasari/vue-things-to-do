@@ -1,232 +1,242 @@
 <template>
-  <v-lazy>
-    <v-card outlined>
-      <v-card-title>
-        {{ this.taskData.title }}
-        <v-spacer></v-spacer>
+  <div>
+    <v-lazy>
+      <v-card outlined>
+        <v-card-title>
+          <span v-if="this.taskData.title.length <= 20">
+            {{ this.taskData.title }}
+          </span>
 
-        <v-dialog v-model="infoDialog" max-width="500" scrollable>
-          <template v-slot:activator="{ on, attrs }">
-            <v-btn icon @click="infoDialog = true" v-bind="attrs" v-on="on">
-              <v-icon>
-                mdi-information-outline
-              </v-icon>
-            </v-btn>
-          </template>
-          <v-card>
-            <v-card-title class="headline">
-              {{ this.taskData.title }}
-            </v-card-title>
+          <span v-else> {{ this.taskData.title.substring(0, 20) }}... </span>
+          <v-spacer></v-spacer>
 
-            <v-divider></v-divider>
+          <v-dialog v-model="infoDialog" max-width="500" scrollable>
+            <template v-slot:activator="{ on, attrs }">
+              <v-btn icon @click="infoDialog = true" v-bind="attrs" v-on="on">
+                <v-icon>
+                  mdi-information-outline
+                </v-icon>
+              </v-btn>
+            </template>
+            <v-card>
+              <v-card-title class="headline">
+                {{ this.taskData.title }}
+              </v-card-title>
 
-            <v-card-text class="mt-2">
-              {{ this.taskData.notes }}
-            </v-card-text>
+              <v-divider></v-divider>
 
-            <v-card-actions class="justify-center">
-              <v-btn
-                :outlined="toDoOutline"
-                small
-                :disabled="toDoFlag"
-                @click="
-                  {
-                    infoDialog = false;
-                    updateStatus('To Do');
-                  }
-                "
+              <v-card-text class="mt-2">
+                {{ this.taskData.notes }}
+              </v-card-text>
+
+              <v-card-actions class="justify-center">
+                <v-btn
+                  :outlined="toDoOutline"
+                  small
+                  :disabled="toDoFlag"
+                  @click="
+                    {
+                      infoDialog = false;
+                      updateStatus('To Do');
+                    }
+                  "
+                >
+                  To Do
+                </v-btn>
+                <v-btn
+                  :outlined="onGoingOutline"
+                  small
+                  color="primary"
+                  :disabled="onGoingFlag"
+                  @click="
+                    {
+                      infoDialog = false;
+                      updateStatus('Ongoing');
+                    }
+                  "
+                >
+                  Ongoing
+                </v-btn>
+                <v-btn
+                  :outlined="doneOutline"
+                  small
+                  color="success"
+                  :disabled="doneFlag"
+                  @click="
+                    {
+                      infoDialog = false;
+                      updateStatus('Done');
+                    }
+                  "
+                >
+                  Done
+                </v-btn>
+              </v-card-actions>
+
+              <v-divider></v-divider>
+
+              <v-card-actions>
+                <v-spacer></v-spacer>
+                <v-btn color="primary" text @click="infoDialog = false">
+                  Close
+                </v-btn>
+              </v-card-actions>
+            </v-card>
+          </v-dialog>
+
+          <v-dialog v-model="editTaskDialog" max-width="600px" scrollable>
+            <template v-slot:activator="{ on, attrs }">
+              <v-btn v-bind="attrs" v-on="on" icon>
+                <v-icon>
+                  mdi-circle-edit-outline
+                </v-icon>
+              </v-btn>
+            </template>
+            <v-card>
+              <v-card-title>
+                <span class="headline">Edit a Task</span>
+              </v-card-title>
+              <v-divider></v-divider>
+              <v-card-text class="mt-2">
+                <v-container>
+                  <v-row>
+                    <v-col cols="12">
+                      <v-text-field
+                        label="Title"
+                        v-model="editTaskData.title"
+                      ></v-text-field>
+                    </v-col>
+                    <v-col cols="12">
+                      <v-textarea
+                        name="notes"
+                        label="Notes"
+                        value=""
+                        row-height="10"
+                        auto-grow
+                        v-model="editTaskData.notes"
+                      ></v-textarea>
+                    </v-col>
+                    <v-col cols="12">
+                      <v-select
+                        :items="['To Do', 'Ongoing', 'Done']"
+                        label="Status"
+                        required
+                        v-model="editTaskData.status"
+                      ></v-select>
+                    </v-col>
+                  </v-row>
+                </v-container>
+              </v-card-text>
+
+              <v-divider></v-divider>
+              <v-card-actions>
+                <v-spacer></v-spacer>
+                <v-btn
+                  color="blue darken-1"
+                  text
+                  @click="editTaskDialog = false"
+                >
+                  Close
+                </v-btn>
+                <v-btn
+                  color="blue darken-1"
+                  text
+                  @click="
+                    {
+                      editTaskDialog = false;
+                      updateTask();
+                    }
+                  "
+                >
+                  Save
+                </v-btn>
+              </v-card-actions>
+            </v-card>
+          </v-dialog>
+
+          <v-dialog v-model="deleteDialog" persistent max-width="290">
+            <template v-slot:activator="{ on, attrs }">
+              <v-btn icon @click="deleteDialog = true" v-bind="attrs" v-on="on">
+                <v-icon>
+                  mdi-close
+                </v-icon>
+              </v-btn>
+            </template>
+            <v-card>
+              <v-card-title class="headline">
+                Delete task?
+              </v-card-title>
+              <v-card-text
+                >Are you sure you want to delete the task?</v-card-text
               >
-                To Do
-              </v-btn>
-              <v-btn
-                :outlined="onGoingOutline"
-                small
-                color="primary"
-                :disabled="onGoingFlag"
-                @click="
-                  {
-                    infoDialog = false;
-                    updateStatus('Ongoing');
-                  }
-                "
-              >
-                Ongoing
-              </v-btn>
-              <v-btn
-                :outlined="doneOutline"
-                small
-                color="success"
-                :disabled="doneFlag"
-                @click="
-                  {
-                    infoDialog = false;
-                    updateStatus('Done');
-                  }
-                "
-              >
-                Done
-              </v-btn>
-            </v-card-actions>
+              <v-card-actions>
+                <v-spacer></v-spacer>
+                <v-btn
+                  color="green darken-1"
+                  text
+                  @click="deleteDialog = false"
+                >
+                  Cancel
+                </v-btn>
+                <v-btn
+                  color="red darken-1"
+                  text
+                  @click="
+                    {
+                      deleteDialog = false;
+                      deleteTask();
+                    }
+                  "
+                >
+                  Delete
+                </v-btn>
+              </v-card-actions>
+            </v-card>
+          </v-dialog>
+        </v-card-title>
 
-            <v-divider></v-divider>
-
-            <v-card-actions>
-              <v-spacer></v-spacer>
-              <v-btn color="primary" text @click="infoDialog = false">
-                Close
-              </v-btn>
-            </v-card-actions>
-          </v-card>
-        </v-dialog>
-
-        <v-dialog v-model="editTaskDialog" max-width="600px" scrollable>
-          <template v-slot:activator="{ on, attrs }">
-            <v-btn v-bind="attrs" v-on="on" icon>
-              <v-icon>
-                mdi-circle-edit-outline
-              </v-icon>
-            </v-btn>
-          </template>
-          <v-card>
-            <v-card-title>
-              <span class="headline">Edit a Task</span>
-            </v-card-title>
-            <v-divider></v-divider>
-            <v-card-text class="mt-2">
-              <v-container>
-                <v-row>
-                  <v-col cols="12">
-                    <v-text-field
-                      label="Title"
-                      v-model="editTaskData.title"
-                    ></v-text-field>
-                  </v-col>
-                  <v-col cols="12">
-                    <v-textarea
-                      name="notes"
-                      label="Notes"
-                      value=""
-                      row-height="10"
-                      auto-grow
-                      v-model="editTaskData.notes"
-                    ></v-textarea>
-                  </v-col>
-                  <v-col cols="12">
-                    <v-select
-                      :items="['To Do', 'Ongoing', 'Done']"
-                      label="Status"
-                      required
-                      v-model="editTaskData.status"
-                    ></v-select>
-                  </v-col>
-                </v-row>
-              </v-container>
-            </v-card-text>
-
-            <v-divider></v-divider>
-            <v-card-actions>
-              <v-spacer></v-spacer>
-              <v-btn color="blue darken-1" text @click="editTaskDialog = false">
-                Close
-              </v-btn>
-              <v-btn
-                color="blue darken-1"
-                text
-                @click="
-                  {
-                    editTaskDialog = false;
-                    updateTask();
-                  }
-                "
-              >
-                Save
-              </v-btn>
-            </v-card-actions>
-          </v-card>
-        </v-dialog>
-
-        <v-dialog v-model="deleteDialog" persistent max-width="290">
-          <template v-slot:activator="{ on, attrs }">
-            <v-btn icon @click="deleteDialog = true" v-bind="attrs" v-on="on">
-              <v-icon>
-                mdi-close
-              </v-icon>
-            </v-btn>
-          </template>
-          <v-card>
-            <v-card-title class="headline">
-              Delete task?
-            </v-card-title>
-            <v-card-text>Are you sure you want to delete the task?</v-card-text>
-            <v-card-actions>
-              <v-spacer></v-spacer>
-              <v-btn color="green darken-1" text @click="deleteDialog = false">
-                Cancel
-              </v-btn>
-              <v-btn
-                color="red darken-1"
-                text
-                @click="
-                  {
-                    deleteDialog = false;
-                    deleteTask();
-                  }
-                "
-              >
-                Delete
-              </v-btn>
-            </v-card-actions>
-          </v-card>
-        </v-dialog>
-      </v-card-title>
-
-      <v-card-subtitle>
-        <p v-if="taskData.notes.length <= 200">
-          {{ this.taskData.notes }}
-        </p>
-        <p v-else>
-          <!-- let updateSummary = (text, length) => { if (text.length >= length) {
-          let x = text.substring(0, length) + '...'; return x; } else { return
-          text; } } -->
-
-          {{ taskData.notes.substring(0, 200) }}...
-        </p>
-        <small
-          >Last updated:
-          {{ new Date(this.taskData.timeStamp).toLocaleString() }}
-        </small>
-      </v-card-subtitle>
-      <v-divider></v-divider>
-      <v-card-actions class="justify-center">
-        <v-btn
-          :outlined="toDoOutline"
-          small
-          :disabled="toDoFlag"
-          @click="updateStatus('To Do')"
-        >
-          To Do
-        </v-btn>
-        <v-btn
-          :outlined="onGoingOutline"
-          small
-          color="primary"
-          :disabled="onGoingFlag"
-          @click="updateStatus('Ongoing')"
-        >
-          Ongoing
-        </v-btn>
-        <v-btn
-          :outlined="doneOutline"
-          small
-          color="success"
-          :disabled="doneFlag"
-          @click="updateStatus('Done')"
-        >
-          Done
-        </v-btn>
-      </v-card-actions>
-    </v-card>
-  </v-lazy>
+        <v-card-subtitle>
+          <p v-if="taskData.notes.length <= 200">
+            {{ this.taskData.notes }}
+          </p>
+          <p v-else>{{ taskData.notes.substring(0, 200) }}...</p>
+          <small
+            >Last updated:
+            {{ new Date(this.taskData.timeStamp).toLocaleString() }}
+          </small>
+        </v-card-subtitle>
+        <v-divider></v-divider>
+        <v-card-actions class="justify-center">
+          <v-btn
+            :outlined="toDoOutline"
+            small
+            :disabled="toDoFlag"
+            @click="updateStatus('To Do')"
+          >
+            To Do
+          </v-btn>
+          <v-btn
+            :outlined="onGoingOutline"
+            small
+            color="primary"
+            :disabled="onGoingFlag"
+            @click="updateStatus('Ongoing')"
+          >
+            Ongoing
+          </v-btn>
+          <v-btn
+            :outlined="doneOutline"
+            small
+            color="success"
+            :disabled="doneFlag"
+            @click="updateStatus('Done')"
+          >
+            Done
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-lazy>
+  </div>
 </template>
 
 <script>
@@ -284,6 +294,7 @@ export default {
         .set(temp)
         .then(() => {
           this.$emit("readDataCall");
+          this.$emit("showNotification", "Status has been updated");
         });
       this.resetButtons();
       this.setButtonDisabled();
@@ -298,6 +309,7 @@ export default {
         .doc(this.taskData.id)
         .set(this.editTaskData)
         .then(() => {
+          this.$emit("showNotification", "Task has been updated");
           this.$emit("readDataCall");
         });
     },
@@ -317,6 +329,7 @@ export default {
         .collection("todoData")
         .doc(this.taskData.id)
         .delete();
+      this.$emit("showNotification", "Task has been deleted");
       this.$emit("readDataCall");
     },
     setEditDialogData: function() {
@@ -329,6 +342,13 @@ export default {
     this.resetButtons();
     this.setButtonDisabled();
     this.setEditDialogData();
+  },
+  watch: {
+    editTaskDialog(visible) {
+      if (visible) {
+        this.setEditDialogData();
+      }
+    },
   },
 };
 </script>
