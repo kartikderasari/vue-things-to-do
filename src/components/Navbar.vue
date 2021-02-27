@@ -32,6 +32,20 @@
             Log out
           </v-btn>
         </v-list-item>
+
+        <v-list-item class="justify-center">
+          <v-list-item-content class="text-center">
+            <v-list-item-subtitle class="caption">
+              © Created by
+              <a
+                class="text-decoration-none"
+                href="https://github.com/kartikderasari"
+                target="_blank"
+                >Kartik Derasari</a
+              >
+            </v-list-item-subtitle>
+          </v-list-item-content>
+        </v-list-item>
       </v-list>
     </v-navigation-drawer>
   </v-card>

@@ -1,5 +1,7 @@
 <template>
-  <loginPage />
+  <v-main class="grey lighten-2">
+    <loginPage />
+  </v-main>
 </template>
 
 <script>

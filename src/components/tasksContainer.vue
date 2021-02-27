@@ -156,19 +156,21 @@ export default {
     addNewTask: async function() {
       this.addTaskDialog = false;
 
-      if (this.newTask.title == "" || this.newTask.status == "") {
-        alert("Enter some text to add a task!");
+      if (this.newTask.title == "") {
+        this.showSnackbar("Please add a title to the task!");
+      } else if (this.newTask.status == "") {
+        this.showSnackbar("Please select the status of the task!");
       } else {
         this.newTask.timeStamp = Date.now();
+        await FDK.firestore()
+          .collection("edata")
+          .doc(this.user.uid)
+          .collection("todoData")
+          .add(this.newTask);
+        this.readTasks();
+        this.showSnackbar("Task has been added");
       }
-      await FDK.firestore()
-        .collection("edata")
-        .doc(this.user.uid)
-        .collection("todoData")
-        .add(this.newTask);
       this.clearForm();
-      this.readTasks();
-      this.showSnackbar("Task has been added");
     },
     readTasks: async function() {
       this.loadingData = true;

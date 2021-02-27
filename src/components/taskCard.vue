@@ -11,13 +11,24 @@
           <v-spacer></v-spacer>
 
           <v-dialog v-model="infoDialog" max-width="500" scrollable>
-            <template v-slot:activator="{ on, attrs }">
-              <v-btn icon @click="infoDialog = true" v-bind="attrs" v-on="on">
-                <v-icon>
-                  mdi-information-outline
-                </v-icon>
-              </v-btn>
+            <template #activator="{ on: dialog, attrs }">
+              <v-tooltip bottom>
+                <template #activator="{on: tooltip }">
+                  <v-btn
+                    icon
+                    @click="infoDialog = true"
+                    v-bind="attrs"
+                    v-on="{ ...tooltip, ...dialog }"
+                  >
+                    <v-icon>
+                      mdi-information-outline
+                    </v-icon>
+                  </v-btn>
+                </template>
+                <span>View </span>
+              </v-tooltip>
             </template>
+
             <v-card>
               <v-card-title class="headline">
                 {{ this.taskData.title }}
@@ -85,13 +96,24 @@
           </v-dialog>
 
           <v-dialog v-model="editTaskDialog" max-width="600px" scrollable>
-            <template v-slot:activator="{ on, attrs }">
-              <v-btn v-bind="attrs" v-on="on" icon>
-                <v-icon>
-                  mdi-circle-edit-outline
-                </v-icon>
-              </v-btn>
+            <template #activator="{ on: dialog, attrs }">
+              <v-tooltip bottom>
+                <template #activator="{on: tooltip }">
+                  <v-btn
+                    icon
+                    @click="editTaskDialog = true"
+                    v-bind="attrs"
+                    v-on="{ ...tooltip, ...dialog }"
+                  >
+                    <v-icon>
+                      mdi-circle-edit-outline
+                    </v-icon>
+                  </v-btn>
+                </template>
+                <span>Edit</span>
+              </v-tooltip>
             </template>
+
             <v-card>
               <v-card-title>
                 <span class="headline">Edit a Task</span>
@@ -131,6 +153,7 @@
               <v-divider></v-divider>
               <v-card-actions>
                 <v-spacer></v-spacer>
+
                 <v-btn
                   color="blue darken-1"
                   text
@@ -155,13 +178,24 @@
           </v-dialog>
 
           <v-dialog v-model="deleteDialog" persistent max-width="290">
-            <template v-slot:activator="{ on, attrs }">
-              <v-btn icon @click="deleteDialog = true" v-bind="attrs" v-on="on">
-                <v-icon>
-                  mdi-close
-                </v-icon>
-              </v-btn>
+            <template #activator="{ on: dialog, attrs }">
+              <v-tooltip bottom>
+                <template #activator="{on: tooltip }">
+                  <v-btn
+                    icon
+                    @click="deleteDialog = true"
+                    v-bind="attrs"
+                    v-on="{ ...tooltip, ...dialog }"
+                  >
+                    <v-icon>
+                      mdi-close
+                    </v-icon>
+                  </v-btn>
+                </template>
+                <span>Delete</span>
+              </v-tooltip>
             </template>
+
             <v-card>
               <v-card-title class="headline">
                 Delete task?
@@ -196,14 +230,14 @@
         </v-card-title>
 
         <v-card-subtitle>
-          <p v-if="taskData.notes.length <= 200">
+          <p class="body-2" v-if="taskData.notes.length <= 200">
             {{ this.taskData.notes }}
           </p>
-          <p v-else>{{ taskData.notes.substring(0, 200) }}...</p>
-          <small
-            >Last updated:
+          <p class="body-2" v-else>{{ taskData.notes.substring(0, 200) }}...</p>
+          <p class="body-2">
+            Last updated:
             {{ new Date(this.taskData.timeStamp).toLocaleString() }}
-          </small>
+          </p>
         </v-card-subtitle>
         <v-divider></v-divider>
         <v-card-actions class="justify-center">
@@ -300,18 +334,24 @@ export default {
       this.setButtonDisabled();
     },
     updateTask: function() {
-      this.editTaskData.timeStamp = Date.now();
-      let user = FDK.auth().currentUser;
-      FDK.firestore()
-        .collection("edata")
-        .doc(user.uid)
-        .collection("todoData")
-        .doc(this.taskData.id)
-        .set(this.editTaskData)
-        .then(() => {
-          this.$emit("showNotification", "Task has been updated");
-          this.$emit("readDataCall");
-        });
+      if (this.editTaskData.title == "") {
+        this.$emit("showNotification", "Please add a title to the task!");
+      } else if (this.editTaskData.status == "") {
+        this.$emit("showNotification", "Please select the status of the task!");
+      } else {
+        this.editTaskData.timeStamp = Date.now();
+        let user = FDK.auth().currentUser;
+        FDK.firestore()
+          .collection("edata")
+          .doc(user.uid)
+          .collection("todoData")
+          .doc(this.taskData.id)
+          .set(this.editTaskData)
+          .then(() => {
+            this.$emit("showNotification", "Task has been updated");
+            this.$emit("readDataCall");
+          });
+      }
     },
     resetButtons: function() {
       this.toDoFlag = false;
